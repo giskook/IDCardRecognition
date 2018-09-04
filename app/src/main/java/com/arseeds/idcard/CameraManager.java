@@ -73,6 +73,8 @@ public class CameraManager {
         Camera.Parameters parameters = camera.getParameters();
         parameters.setPreviewSize(mPreviewSize.width,
                 mPreviewSize.height);
+//        parameters.setPreviewSize(mPreviewSize.height,
+//                mPreviewSize.width);
         Log.d("zkcam", "pw=" + mPreviewSize.width);
         Log.d("zkcam", "ph=" + mPreviewSize.height);
         camera.setParameters(parameters);
@@ -171,6 +173,7 @@ public class CameraManager {
         Camera theCamera = camera;
         if (theCamera != null && !previewing) {
 //            theCamera.setOneShotPreviewCallback(mp);
+            theCamera.setDisplayOrientation(90);
             theCamera.startPreview();
             previewing = true;
             autoFocusManager = new AutoFocusManager(camera, mp);
