@@ -9,12 +9,15 @@ import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
+import android.media.AudioManager;
+import android.media.ToneGenerator;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
@@ -38,6 +41,11 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback ,
     static final String DEFAULT_LANGUAGE = "eng";
     private ImageView iv_result;
 
+    static {
+        System.loadLibrary("swt");
+    }
+    private native Bitmap getTextRegion(Bitmap bmp);
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,6 +67,12 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback ,
         sfv = (SurfaceView) findViewById(R.id.sfv);
         SurfaceHolder surfaceHolder = sfv.getHolder();
         iv_result = (ImageView) findViewById(R.id.iv_result);
+        iv_result.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                Log.wtf(TAG,"click");
+            }
+            });
         if (hasSurface) {
             // activity在paused时但不会stopped,因此surface仍旧存在；
             // surfaceCreated()不会调用，因此在这里初始化camera
@@ -119,7 +133,10 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback ,
 
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
+//        Log.d("zka", "bitmap is nlll");
+//        return;
         camera.addCallbackBuffer(data);
+
         ByteArrayOutputStream baos;
         byte[] rawImage;
         Bitmap bitmap;
@@ -143,22 +160,29 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback ,
             Log.d("zka", "bitmap is nlll");
             return;
         } else {
+
             int height = bitmap.getHeight();
             int width = bitmap.getWidth();
             //final Bitmap bitmap1 = Bitmap.createBitmap(bitmap, width/2 - dip2px(150),height / 2 - dip2px(92), dip2px(300), dip2px(185));
-            final Bitmap bitmap1 = Bitmap.createBitmap(bitmap, dip2px(50),height / 2 - dip2px(125),dip2px(50), dip2px(250));
+            final Bitmap bitmap1 = Bitmap.createBitmap(bitmap, dip2px(100),height / 2 - dip2px(90),dip2px(30), dip2px(180));
             int x, y, w, h;
             x = 0;
             y = 0;
             w = (int) (bitmap1.getWidth()  + 0.5f);
             h = (int) (bitmap1.getHeight() + 0.5f);
             Bitmap bit_hm = Bitmap.createBitmap(bitmap1, x, y, w, h);
-//            iv_result.setImageBitmap(bit_hm);
             Bitmap rotatedBitmap = rotateBitmap(bit_hm, 90);
-            iv_result.setImageBitmap(rotatedBitmap);
-            if(bit_hm != null){
-                String localre = localre(bit_hm);
-                if (localre.length() == 18) {
+//            iv_result.setImageBitmap(rotatedBitmap);
+            if(rotatedBitmap != null){
+                Bitmap bm=this.getTextRegion(rotatedBitmap);
+                iv_result.setImageBitmap(bm);
+                String localre = localre(rotatedBitmap);
+                Log.e(TAG, "onPreviewFrame1: "+localre );
+                //localre = localre.replaceAll("\\s+","");
+                //if (localre.length() == 11 && localre.substring(0,1).equals("1")) {
+                if (localre.length() == 18 || localre.length() == 10) {
+                    ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 200);
+                    toneG.startTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD, 100); // 200 is duration in ms
                     Log.e(TAG, "onPreviewFrame: "+localre );
                     Toast.makeText(getApplicationContext(),localre,Toast.LENGTH_SHORT).show();
                 }
@@ -166,18 +190,11 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback ,
         }
     }
 
-    public Bitmap rotateBitmap(Bitmap original, float degrees) {
-        int width = original.getWidth();
-        int height = original.getHeight();
-
+    public static Bitmap rotateBitmap(Bitmap source, float angle)
+    {
         Matrix matrix = new Matrix();
-        matrix.preRotate(degrees);
-
-        Bitmap rotatedBitmap = Bitmap.createBitmap(original, 0, 0, width, height, matrix, true);
-        Canvas canvas = new Canvas(rotatedBitmap);
-        canvas.drawBitmap(original, 5.0f, 0.0f, null);
-
-        return rotatedBitmap;
+        matrix.postRotate(angle);
+        return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
     }
 
     private String localre(Bitmap bm) {
@@ -190,7 +207,7 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback ,
         baseApi.setPageSegMode(TessBaseAPI.PageSegMode.PSM_SINGLE_LINE);
         //设置要识别的图片
         baseApi.setImage(bm);
-        baseApi.setVariable("tessedit_char_whitelist", "0123456789Xx");
+        baseApi.setVariable("tessedit_char_whitelist", "0123456789xX-");
         Log.e(TAG, "localre: "+ baseApi.getUTF8Text());
         content = baseApi.getUTF8Text();
         baseApi.clear();
