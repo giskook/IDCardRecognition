@@ -175,7 +175,9 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback ,
 //            iv_result.setImageBitmap(rotatedBitmap);
             if(rotatedBitmap != null){
                 Bitmap bm=this.getTextRegion(rotatedBitmap);
-                iv_result.setImageBitmap(bm);
+                if (bm != null) {
+                    iv_result.setImageBitmap(bm);
+                }
                 String localre = localre(rotatedBitmap);
                 Log.e(TAG, "onPreviewFrame1: "+localre );
                 //localre = localre.replaceAll("\\s+","");
@@ -200,7 +202,7 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback ,
     private String localre(Bitmap bm) {
         String content = "";
         bm = bm.copy(Bitmap.Config.ARGB_8888, true);
-        iv_result.setImageBitmap(bm);
+//        iv_result.setImageBitmap(bm);
         TessBaseAPI baseApi = new TessBaseAPI();
         baseApi.init(TESSBASE_PATH, DEFAULT_LANGUAGE);
         //设置识别模式

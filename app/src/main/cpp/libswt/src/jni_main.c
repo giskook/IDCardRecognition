@@ -48,12 +48,10 @@ JNIEXPORT jobject JNICALL Java_com_arseeds_idcard_CameraActivity_getTextRegion
     if (words) {
         for (int i = 0; i < swt_len(words); i++) {
             swt_rect *rect = swt_get(words, i);
-            if (max == NULL)
-            {
+            if (max == NULL){
                 max = rect;
             }else{
-                if (rect->width > max->width)
-                {
+                if (rect->width > max->width){
                     max = rect;
                 };
             }
@@ -66,14 +64,14 @@ JNIEXPORT jobject JNICALL Java_com_arseeds_idcard_CameraActivity_getTextRegion
         jclass bitmapCls = (*env)->GetObjectClass(env,bitmap);
         jmethodID createBitmapFunction = (*env)->GetStaticMethodID(env, bitmapCls, "createBitmap",
                                                                     "(IILandroid/graphics/Bitmap$Config;)Landroid/graphics/Bitmap;");
-        jstring configName = (*env)->NewStringUTF(env, "RGB_565");
+        jstring configName = (*env)->NewStringUTF(env, "ARGB_8888");
         jclass bitmapConfigClass = (*env)->FindClass(env, "android/graphics/Bitmap$Config");
         jmethodID valueOfBitmapConfigFunction = (*env)->GetStaticMethodID(env,bitmapConfigClass, "valueOf",
                                                                        "(Ljava/lang/String;)Landroid/graphics/Bitmap$Config;");
         jobject bitmapConfig = (*env)->CallStaticObjectMethod(env,bitmapConfigClass,
                                                            valueOfBitmapConfigFunction, configName);
         jobject newBitmap = (*env)->CallStaticObjectMethod(env,bitmapCls, createBitmapFunction,
-                                                        info.height, info.height, bitmapConfig);
+                                                        max->height, max->height, bitmapConfig);
         //
         // putting the pixels into the new bitmap:
         //
@@ -84,7 +82,7 @@ JNIEXPORT jobject JNICALL Java_com_arseeds_idcard_CameraActivity_getTextRegion
         }
 
         for (int i = 0; i < max->height; i++) {
-            memcpy(newBitmapPixels, pixels + max->y*info.width*2+max->x*2, max->width*2);
+            memcpy(newBitmapPixels, pixels + max->y*info.width*4+max->x*4, max->width*4);
         }
 
         AndroidBitmap_unlockPixels(env, newBitmap);
@@ -95,6 +93,6 @@ JNIEXPORT jobject JNICALL Java_com_arseeds_idcard_CameraActivity_getTextRegion
 
     AndroidBitmap_unlockPixels(env, bitmap);
 
-    return bitmap;
+    return NULL;
 
 }
