@@ -1,6 +1,7 @@
 #ifndef LIBSWT_H
 #define LIBSWT_H
 
+
 // copied from ccv.h
 typedef struct {
     int interval;               /* Intervals for scale invariant option. */

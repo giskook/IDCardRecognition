@@ -4,8 +4,11 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
@@ -154,7 +157,9 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback ,
         rawImage = baos.toByteArray();
         //将rawImage转换成bitmap
         BitmapFactory.Options options = new BitmapFactory.Options();
+//        options.inPreferredConfig = Bitmap.Config.ARGB_8888;
         options.inPreferredConfig = Bitmap.Config.RGB_565;
+
         bitmap = BitmapFactory.decodeByteArray(rawImage, 0, rawImage.length, options);
         if (bitmap == null) {
             Log.d("zka", "bitmap is nlll");
@@ -164,7 +169,7 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback ,
             int height = bitmap.getHeight();
             int width = bitmap.getWidth();
             //final Bitmap bitmap1 = Bitmap.createBitmap(bitmap, width/2 - dip2px(150),height / 2 - dip2px(92), dip2px(300), dip2px(185));
-            final Bitmap bitmap1 = Bitmap.createBitmap(bitmap, dip2px(100),height / 2 - dip2px(90),dip2px(30), dip2px(180));
+            final Bitmap bitmap1 = Bitmap.createBitmap(bitmap, dip2px(100),height / 2 - dip2px(90),dip2px(90), dip2px(180));
             int x, y, w, h;
             x = 0;
             y = 0;
@@ -174,7 +179,7 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback ,
             Bitmap rotatedBitmap = rotateBitmap(bit_hm, 90);
 //            iv_result.setImageBitmap(rotatedBitmap);
             if(rotatedBitmap != null){
-                Bitmap bm=this.getTextRegion(rotatedBitmap);
+                Bitmap bm=this.getTextRegion(toGrayscale(rotatedBitmap));
                 if (bm != null) {
                     iv_result.setImageBitmap(bm);
                 }
@@ -190,6 +195,24 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback ,
                 }
             }
         }
+    }
+
+    public Bitmap toGrayscale(Bitmap bmpOriginal)
+    {
+        int width, height;
+        height = bmpOriginal.getHeight();
+        width = bmpOriginal.getWidth();
+
+        Bitmap bmpGrayscale = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+        //Bitmap bmpGrayscale = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        Canvas c = new Canvas(bmpGrayscale);
+        Paint paint = new Paint();
+        ColorMatrix cm = new ColorMatrix();
+        cm.setSaturation(0);
+        ColorMatrixColorFilter f = new ColorMatrixColorFilter(cm);
+        paint.setColorFilter(f);
+        c.drawBitmap(bmpOriginal, 0, 0, paint);
+        return bmpGrayscale;
     }
 
     public static Bitmap rotateBitmap(Bitmap source, float angle)
