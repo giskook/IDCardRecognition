@@ -157,8 +157,8 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback ,
         rawImage = baos.toByteArray();
         //将rawImage转换成bitmap
         BitmapFactory.Options options = new BitmapFactory.Options();
-//        options.inPreferredConfig = Bitmap.Config.ARGB_8888;
-        options.inPreferredConfig = Bitmap.Config.RGB_565;
+        options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+//        options.inPreferredConfig = Bitmap.Config.RGB_565;
 
         bitmap = BitmapFactory.decodeByteArray(rawImage, 0, rawImage.length, options);
         if (bitmap == null) {
@@ -179,7 +179,7 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback ,
             Bitmap rotatedBitmap = rotateBitmap(bit_hm, 90);
 //            iv_result.setImageBitmap(rotatedBitmap);
             if(rotatedBitmap != null){
-                Bitmap bm=this.getTextRegion(toGrayscale(rotatedBitmap));
+                Bitmap bm=this.getTextRegion(rotatedBitmap);
                 if (bm != null) {
                     iv_result.setImageBitmap(bm);
                 }
@@ -197,23 +197,23 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback ,
         }
     }
 
-    public Bitmap toGrayscale(Bitmap bmpOriginal)
-    {
-        int width, height;
-        height = bmpOriginal.getHeight();
-        width = bmpOriginal.getWidth();
-
-        Bitmap bmpGrayscale = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
-        //Bitmap bmpGrayscale = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
-        Canvas c = new Canvas(bmpGrayscale);
-        Paint paint = new Paint();
-        ColorMatrix cm = new ColorMatrix();
-        cm.setSaturation(0);
-        ColorMatrixColorFilter f = new ColorMatrixColorFilter(cm);
-        paint.setColorFilter(f);
-        c.drawBitmap(bmpOriginal, 0, 0, paint);
-        return bmpGrayscale;
-    }
+//    public Bitmap toGrayscale(Bitmap bmpOriginal)
+//    {
+//        int width, height;
+//        height = bmpOriginal.getHeight();
+//        width = bmpOriginal.getWidth();
+//
+//        Bitmap bmpGrayscale = Bitmap.createBitmap(width, height, Bitmap.Config.ALPHA_8);
+//        //Bitmap bmpGrayscale = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+//        Canvas c = new Canvas(bmpGrayscale);
+//        Paint paint = new Paint();
+//        ColorMatrix cm = new ColorMatrix();
+//        cm.setSaturation(0);
+//        ColorMatrixColorFilter f = new ColorMatrixColorFilter(cm);
+//        paint.setColorFilter(f);
+//        c.drawBitmap(bmpOriginal, 0, 0, paint);
+//        return bmpGrayscale;
+//    }
 
     public static Bitmap rotateBitmap(Bitmap source, float angle)
     {

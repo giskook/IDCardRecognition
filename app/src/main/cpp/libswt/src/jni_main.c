@@ -21,7 +21,7 @@ static const char *kTAG = "__swt__";
 #define LOGE(...) \
   ((void)__android_log_print(ANDROID_LOG_ERROR, kTAG, __VA_ARGS__))
 
-
+#define GRAY(x) ((((x&0x00ff0000)>>16)+((x&0x0000ff00)>>8)+(x&0x000000ff))/3)
 JNIEXPORT jobject JNICALL Java_com_arseeds_idcard_CameraActivity_getTextRegion
         (JNIEnv *env, jobject thiz, jobject bitmap) {
 
@@ -35,8 +35,8 @@ JNIEXPORT jobject JNICALL Java_com_arseeds_idcard_CameraActivity_getTextRegion
     }
     LOGE("bmp height %d width %d", info.height, info.width);
 
-    if (info.format != ANDROID_BITMAP_FORMAT_RGB_565) {
-        LOGE("Bitmap format is not RGB_565 !");
+    if (info.format != ANDROID_BITMAP_FORMAT_RGBA_8888) {
+        LOGE("Bitmap format is not ARGB_8888 !");
         return 0;
     }
 
@@ -44,7 +44,23 @@ JNIEXPORT jobject JNICALL Java_com_arseeds_idcard_CameraActivity_getTextRegion
         LOGE("AndroidBitmap_lockPixels() failed ! error=%d", ret);
         return NULL;
     }
-    swt_array *words = swt_detect(pixels, info.width, info.height, NULL);
+    unsigned char * gray_pixels = (unsigned char *)malloc(info.width * info.height);
+
+    LOGE("%d", GRAY(*(((unsigned  int *)pixels) + 0*info.width + 0)));
+
+    LOGE("%d %d %d %d", (*(((unsigned  int *)pixels))&0xff000000)>>24,
+         (*(((unsigned  int *)pixels))&0x00ff0000)>>16,
+            (*(((unsigned  int *)pixels))&0x0000ff00)>>8,
+            (*(((unsigned  int *)pixels))&0x000000ff));
+    LOGE("-----%d %d %d %d", ((unsigned char *)pixels)[0], ((unsigned char *)pixels)[1], ((unsigned char *)pixels)[2], ((unsigned char *)pixels)[3]);
+
+
+    for (int i = 0; i < info.height; i++){
+        for(int j = 0; j < info.width; j++){
+            *(gray_pixels + i*info.width +j) = GRAY(*(((unsigned  int *)pixels) + i*info.width + j));
+        }
+    }
+    swt_array *words = swt_detect(gray_pixels, info.width, info.height, NULL);
     swt_rect max;
     max.x = 0;
     max.y = 0;
@@ -96,7 +112,7 @@ JNIEXPORT jobject JNICALL Java_com_arseeds_idcard_CameraActivity_getTextRegion
         jmethodID createBitmapFunction = (*env)->GetStaticMethodID(env, bitmapCls,
                                                                    "createBitmap",
                                                                    "(IILandroid/graphics/Bitmap$Config;)Landroid/graphics/Bitmap;");
-        jstring configName = (*env)->NewStringUTF(env, "RGB_565");
+        jstring configName = (*env)->NewStringUTF(env, "ARGB_8888");
         jclass bitmapConfigClass = (*env)->FindClass(env, "android/graphics/Bitmap$Config");
         jmethodID valueOfBitmapConfigFunction = (*env)->GetStaticMethodID(env,
                                                                           bitmapConfigClass,
@@ -126,9 +142,9 @@ JNIEXPORT jobject JNICALL Java_com_arseeds_idcard_CameraActivity_getTextRegion
         }
 
         for (int i = 0; i < max.height; i++) {
-            memcpy(newBitmapPixels + i * max.width * 2,
-                   pixels + (max.y + i) * info.width * 2 + max.x * 2,
-                   max.width * 2);
+            memcpy(newBitmapPixels + i * max.width * 4,
+                   pixels + (max.y + i) * info.width * 4 + max.x * 4,
+                   max.width * 4);
         }
 
         AndroidBitmap_unlockPixels(env, newBitmap);
