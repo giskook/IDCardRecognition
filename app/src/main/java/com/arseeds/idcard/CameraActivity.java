@@ -42,6 +42,7 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback ,
     static final String TESSBASE_PATH = Environment.getExternalStorageDirectory() + "/";
     //识别语言英文
     static final String DEFAULT_LANGUAGE = "eng";
+//    static final String DEFAULT_LANGUAGE = "chi_sim";
     private ImageView iv_result;
 
     static {
@@ -136,10 +137,7 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback ,
 
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
-//        Log.d("zka", "bitmap is nlll");
-//        return;
         camera.addCallbackBuffer(data);
-
         ByteArrayOutputStream baos;
         byte[] rawImage;
         Bitmap bitmap;
@@ -165,7 +163,6 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback ,
             Log.d("zka", "bitmap is nlll");
             return;
         } else {
-
             int height = bitmap.getHeight();
             int width = bitmap.getWidth();
             //final Bitmap bitmap1 = Bitmap.createBitmap(bitmap, width/2 - dip2px(150),height / 2 - dip2px(92), dip2px(300), dip2px(185));
@@ -183,15 +180,14 @@ public class CameraActivity extends Activity implements SurfaceHolder.Callback ,
                 if (bm != null) {
                     iv_result.setImageBitmap(bm);
                 }
-                String localre = localre(rotatedBitmap);
+                String localre = localre(bm);
                 Log.e(TAG, "onPreviewFrame1: "+localre );
                 //localre = localre.replaceAll("\\s+","");
-                //if (localre.length() == 11 && localre.substring(0,1).equals("1")) {
-                if (localre.length() == 18 || localre.length() == 10) {
+                if (localre.length() == 11 && localre.substring(0,1).equals("1")) {
                     ToneGenerator toneG = new ToneGenerator(AudioManager.STREAM_ALARM, 200);
                     toneG.startTone(ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD, 100); // 200 is duration in ms
                     Log.e(TAG, "onPreviewFrame: "+localre );
-                    Toast.makeText(getApplicationContext(),localre,Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getApplicationContext(),localre,Toast.LENGTH_LONG).show();
                 }
             }
         }
